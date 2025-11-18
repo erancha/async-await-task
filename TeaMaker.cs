@@ -7,18 +7,27 @@ namespace AsyncAwaitTask
 {
     class TeaMaker
     {
-        private static readonly HttpClient httpClient = new HttpClient();
+        private readonly IKettleService kettleService;
         private const int BoilingTimeMs = 3000;
-        private static string KettleApiUrl => $"https://httpbin.org/delay/{BoilingTimeMs / 1000}";
+
+        public TeaMaker(IKettleService kettleService)
+        {
+            this.kettleService = kettleService;
+        }
 
         static async Task Main(string[] args)
         {
+            // Setup dependency injection
+            var httpClient = new HttpClient();
+            var kettleService = new KettleService(httpClient);
+            var teaMaker = new TeaMaker(kettleService);
+
             Console.WriteLine("=== Tea Making Process ===\n");
-            await MakeTeaAsync();
+            await teaMaker.MakeTeaAsync();
             Console.WriteLine("\n=== Tea is ready! ===");
         }
 
-        static async Task MakeTeaAsync()
+        async Task MakeTeaAsync()
         {
             // Step 1: Start boiling water asynchronously
             Task<string> boilingWaterTask = BoilWaterAsync();
@@ -34,17 +43,18 @@ namespace AsyncAwaitTask
             ServeCup();
         }
 
-        static async Task<string> BoilWaterAsync()
+        async Task<string> BoilWaterAsync()
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] BoilWaterAsync START - Checking kettle status...");
             
             // Simulate boiling water with an async I/O operation, making HTTP call to check "smart kettle" status
-            try
+            bool kettleOnline = await kettleService.CheckKettleStatusAsync();
+            
+            if (kettleOnline)
             {
-                var response = await httpClient.GetStringAsync(KettleApiUrl);
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] BoilWaterAsync - Kettle responded");
             }
-            catch (Exception)
+            else
             {
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] BoilWaterAsync - Kettle offline, using timer fallback");
                 await Task.Delay(BoilingTimeMs);
@@ -54,17 +64,17 @@ namespace AsyncAwaitTask
             return "Boiled Water";
         }
 
-        static void PutTeaInCup()
+        void PutTeaInCup()
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] PutTeaInCup  -> Tea bag placed in cup");
         }
 
-        static void PourWaterIntoCup(string water)
+        void PourWaterIntoCup(string water)
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] PourWaterIntoCup  -> Pouring {water} into cup");
         }
 
-        static void ServeCup()
+        void ServeCup()
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] ServeCup  -> Cup is ready to serve!");
         }
