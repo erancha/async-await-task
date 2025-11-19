@@ -29,16 +29,19 @@ namespace AsyncAwaitTask
 
         async Task MakeTeaAsync()
         {
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] MakeTeaAsync - START");
+
             // Step 1: Start boiling water asynchronously
             Task<string> boilingWaterTask = BoilWaterAsync();
-            
+
             // Step 2: Put tea in cup (synchronous operation)
             PutTeaInCup();
-            
+
             // Step 3: Wait for water to boil and pour it
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] MakeTeaAsync - before string water = await boilingWaterTask;");
             string water = await boilingWaterTask;
             PourWaterIntoCup(water);
-            
+
             // Step 4: Serve the cup
             ServeCup();
         }
@@ -46,10 +49,10 @@ namespace AsyncAwaitTask
         async Task<string> BoilWaterAsync()
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] BoilWaterAsync START - Checking kettle status...");
-            
+
             // Simulate boiling water with an async I/O operation, making HTTP call to check "smart kettle" status
             bool kettleOnline = await kettleService.CheckKettleStatusAsync();
-            
+
             if (kettleOnline)
             {
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] BoilWaterAsync - Kettle responded");
@@ -59,7 +62,7 @@ namespace AsyncAwaitTask
                 Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] BoilWaterAsync - Kettle offline, using timer fallback");
                 await Task.Delay(BoilingTimeMs);
             }
-            
+
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] BoilWaterAsync END");
             return "Boiled Water";
         }
