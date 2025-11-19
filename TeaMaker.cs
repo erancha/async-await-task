@@ -34,15 +34,26 @@ namespace AsyncAwaitTask
             // Step 1: Start boiling water asynchronously
             Task<string> boilingWaterTask = BoilWaterAsync();
 
+            // Sample: offload CPU-bound snack prep work to Task.Run
+            Task snackPreparationTask = Task.Run(() =>
+            {
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] Task.Run -> Preparing snacks (CPU-bound work)...");
+                Thread.Sleep(20000);
+                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] Task.Run -> Snacks ready!");
+            });
+
             // Step 2: Put tea in cup (synchronous operation)
             PutTeaInCup();
 
             // Step 3: Wait for water to boil and pour it
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] MakeTeaAsync - before string water = await boilingWaterTask;");
+            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] MakeTeaAsync - before await boilingWaterTask;");
             string water = await boilingWaterTask;
             PourWaterIntoCup(water);
 
-            // Step 4: Serve the cup
+            // Step 4: Ensure snacks are ready
+            await snackPreparationTask;
+
+            // Step 5: Serve the cup
             ServeCup();
         }
 
