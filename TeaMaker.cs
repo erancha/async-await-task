@@ -15,19 +15,7 @@ namespace AsyncAwaitTask
             this.kettleService = kettleService;
         }
 
-        static async Task Main(string[] args)
-        {
-            // Setup dependency injection
-            using var httpClient = new HttpClient(); // using ensures deterministic disposal of sockets/handlers; GC is non-deterministic and can cause resource exhaustion
-            var kettleService = new KettleService(httpClient);
-            var teaMaker = new TeaMaker(kettleService);
-
-            Console.WriteLine("=== Tea Making Process ===\n");
-            await teaMaker.MakeTeaAsync();
-            Console.WriteLine("\n=== Tea is ready! ===");
-        }
-
-        async Task MakeTeaAsync()
+        public async Task MakeTeaAsync()
         {
             Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] MakeTeaAsync - START");
 
