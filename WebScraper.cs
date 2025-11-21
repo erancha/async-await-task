@@ -35,12 +35,12 @@ namespace AsyncAwaitTask
 
         public async Task<IReadOnlyList<(string Word, int Count)>> ScrapeAndAggregateAsync(CancellationToken cancellationToken = default)
         {
-            Log("ScrapeAndAggregateAsync - START");
+            Logger.InfoFor<WebScraper>("ScrapeAndAggregateAsync - START");
 
             var scrapeTasks = urls.Select(url => ScrapeUrlAsync(url, cancellationToken)).ToArray();
             var results = await Task.WhenAll(scrapeTasks);
 
-            Log("ScrapeAndAggregateAsync - All URLs scraped");
+            Logger.InfoFor<WebScraper>("ScrapeAndAggregateAsync - All URLs scraped");
 
             // Sequential aggregation: fine for typical workloads where I/O dominates. For 1000+ URLs or millions of words, consider parallel approaches (see end of file).
             var aggregate = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -60,26 +60,26 @@ namespace AsyncAwaitTask
                 .Select(kvp => (kvp.Key, kvp.Value))
                 .ToList();
 
-            Log("ScrapeAndAggregateAsync - Aggregation complete");
+            Logger.InfoFor<WebScraper>("ScrapeAndAggregateAsync - Aggregation complete");
 
             return ordered;
         }
 
         private async Task<WordCountResult> ScrapeUrlAsync(string url, CancellationToken cancellationToken)
         {
-            Log($"ScrapeUrlAsync - START ({url})");
+            Logger.InfoFor<WebScraper>($"ScrapeUrlAsync - START ({url})");
 
             try
             {
                 var content = await httpClient.GetStringAsync(url, cancellationToken);
                 var wordCounts = CountWords(content);
 
-                Log($"ScrapeUrlAsync - END ({url}) - total words: {wordCounts.Sum(kvp => kvp.Value)}, unique words: {wordCounts.Count}");
+                Logger.InfoFor<WebScraper>($"ScrapeUrlAsync - END ({url}) - total words: {wordCounts.Sum(kvp => kvp.Value)}, unique words: {wordCounts.Count}");
                 return new WordCountResult(url, wordCounts);
             }
             catch (Exception ex)
             {
-                Log($"ScrapeUrlAsync - ERROR ({url}) - {ex.Message}");
+                Logger.ErrorFor<WebScraper>($"ScrapeUrlAsync - ERROR ({url})", ex);
                 return new WordCountResult(url, new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase));
             }
         }
@@ -101,11 +101,6 @@ namespace AsyncAwaitTask
             }
 
             return counts;
-        }
-
-        private static void Log(string message)
-        {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] {message}");
         }
 
         private sealed record WordCountResult(string Url, IReadOnlyDictionary<string, int> WordCounts);

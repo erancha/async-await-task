@@ -26,26 +26,35 @@ namespace AsyncAwaitTask
       {
          using var httpClient = new HttpClient();
 
-         var kettleService = new KettleService(httpClient);
-         var teaMaker = new TeaMaker(kettleService);
-
-         // Console.WriteLine("=== Tea Making Process ===\n");
-         // await teaMaker.MakeTeaAsync();
-         // Console.WriteLine("\n=== Tea is ready! ===");
-
-         Console.WriteLine("\n=== Web Scraping ===\n");
-         var webScraper = new WebScraper(httpClient, UrlsToScrape);
          var stopwatch = Stopwatch.StartNew();
-         var aggregatedResults = await webScraper.ScrapeAndAggregateAsync();
+
+         // var kettleService = new KettleService(httpClient);
+         // var teaMaker = new TeaMaker(kettleService);
+
+         // Logger.Info("=== Tea Making Process ===", nameof(Program));
+         // await teaMaker.MakeTeaAsync();
+         // stopwatch.Stop();
+         // ------------------------------------------------------------------------------------------------
+
+         // Logger.Info("=== Web Scraping ===", nameof(Program));
+         // var webScraper = new WebScraper(httpClient, UrlsToScrape);
+         // var aggregatedResults = await webScraper.ScrapeAndAggregateAsync();
+         // stopwatch.Stop();
+
+         // Logger.Info($"Aggregated word counts (top {TopWordsToDisplay}, desc):", nameof(Program));
+         // foreach (var (word, count) in aggregatedResults.Take(TopWordsToDisplay))
+         // {
+         //    Logger.Info($"{word}: {count}", nameof(Program));
+         // }
+         // ------------------------------------------------------------------------------------------------
+
+         Logger.Info("=== Kafka Async Pipeline ===", nameof(Program));
+         var kafkaPipeline = new KafkaPipeline();
+         await kafkaPipeline.RunAsync();
+
          stopwatch.Stop();
 
-         Console.WriteLine($"Aggregated word counts (top {TopWordsToDisplay}, desc):");
-         foreach (var (word, count) in aggregatedResults.Take(TopWordsToDisplay))
-         {
-            Console.WriteLine($"{word}: {count}");
-         }
-
-         Console.WriteLine($"\nTotal elapsed time: {stopwatch.Elapsed.TotalSeconds:F2}s");
+         Logger.Info($"Total elapsed time: {stopwatch.Elapsed.TotalSeconds:F2}s", nameof(Program));
       }
    }
 }

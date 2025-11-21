@@ -17,7 +17,7 @@ namespace AsyncAwaitTask
 
         public async Task MakeTeaAsync()
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] MakeTeaAsync - START");
+            Logger.InfoFor<TeaMaker>("MakeTeaAsync - START");
 
             // Step 1: Start boiling water asynchronously
             Task<string> boilingWaterTask = BoilWaterAsync();
@@ -25,16 +25,16 @@ namespace AsyncAwaitTask
             // Sample: offload CPU-bound snack prep work to Task.Run
             Task snackPreparationTask = Task.Run(() =>
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] Task.Run -> Preparing snacks (CPU-bound work)...");
+                Logger.InfoFor<TeaMaker>("Task.Run -> Preparing snacks (CPU-bound work)...");
                 Thread.Sleep(20000);
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] Task.Run -> Snacks ready!");
+                Logger.InfoFor<TeaMaker>("Task.Run -> Snacks ready!");
             });
 
             // Step 2: Put tea in cup (synchronous operation)
             PutTeaInCup();
 
             // Step 3: Wait for water to boil and pour it
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] MakeTeaAsync - before await boilingWaterTask;");
+            Logger.InfoFor<TeaMaker>("MakeTeaAsync - before await boilingWaterTask;");
             string water = await boilingWaterTask;
             PourWaterIntoCup(water);
 
@@ -47,38 +47,38 @@ namespace AsyncAwaitTask
 
         async Task<string> BoilWaterAsync()
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] BoilWaterAsync START - Checking kettle status...");
+            Logger.InfoFor<TeaMaker>("BoilWaterAsync START - Checking kettle status...");
 
             // Simulate boiling water with an async I/O operation, making HTTP call to check "smart kettle" status
             bool kettleOnline = await kettleService.CheckKettleStatusAsync();
 
             if (kettleOnline)
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] BoilWaterAsync - Kettle responded");
+                Logger.InfoFor<TeaMaker>("BoilWaterAsync - Kettle responded");
             }
             else
             {
-                Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] BoilWaterAsync - Kettle offline, using timer fallback");
+                Logger.WarnFor<TeaMaker>("BoilWaterAsync - Kettle offline, using timer fallback");
                 await Task.Delay(BoilingTimeMs);
             }
 
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] BoilWaterAsync END");
+            Logger.InfoFor<TeaMaker>("BoilWaterAsync END");
             return "Boiled Water";
         }
 
         void PutTeaInCup()
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] PutTeaInCup  -> Tea bag placed in cup");
+            Logger.InfoFor<TeaMaker>("PutTeaInCup  -> Tea bag placed in cup");
         }
 
         void PourWaterIntoCup(string water)
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] PourWaterIntoCup  -> Pouring {water} into cup");
+            Logger.InfoFor<TeaMaker>($"PourWaterIntoCup  -> Pouring {water} into cup");
         }
 
         void ServeCup()
         {
-            Console.WriteLine($"[{DateTime.Now:HH:mm:ss.fff}] [thread #{Thread.CurrentThread.ManagedThreadId}] ServeCup  -> Cup is ready to serve!");
+            Logger.InfoFor<TeaMaker>("ServeCup  -> Cup is ready to serve!");
         }
     }
 }
