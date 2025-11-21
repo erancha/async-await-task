@@ -22,8 +22,10 @@ namespace AsyncAwaitTask
                 var response = await httpClient.GetStringAsync(KettleApiUrl);
                 return true; // Kettle is online
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Logger.WarnFor<KettleService>(
+                    $"CheckKettleStatusAsync - Kettle offline because request to {KettleApiUrl} failed: {ex.GetType().Name} | {ex.Message}");
                 return false; // Kettle is offline
             }
         }

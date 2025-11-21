@@ -30,30 +30,34 @@ Simulates making tea with these steps:
 ## Expected Output
 
 ```
-=== Tea Making Process ===
-
-[15:39:05.947] [thread #1] BoilWaterAsync START - Checking kettle status...
-[15:39:06.033] [thread #1] PutTeaInCup  -> Tea bag placed in cup
-[15:39:19.138] [thread #9] BoilWaterAsync - Kettle responded
-[15:39:19.138] [thread #9] BoilWaterAsync END
-[15:39:19.139] [thread #9] PourWaterIntoCup  -> Pouring Boiled Water into cup
-[15:39:19.139] [thread #9] ServeCup  -> Cup is ready to serve!
-
-=== Tea is ready! ===
+[16:45:30.329] [thread #1 ] [INF] [Program] === Tea Making Process ===
+[16:45:30.346] [thread #1 ] [INF] [TeaMaker] MakeTeaAsync - START
+[16:45:30.347] [thread #1 ] [INF] [TeaMaker] BoilWaterAsync START - Checking kettle status...
+[16:45:30.415] [thread #1 ] [INF] [TeaMaker] PutTeaInCup  -> Tea bag placed in cup
+[16:45:30.417] [thread #1 ] [INF] [TeaMaker] MakeTeaAsync - before await boilingWaterTask;
+[16:45:30.422] [thread #7 ] [INF] [TeaMaker] Task.Run -> Preparing snacks (CPU-bound work)...
+[16:45:48.303] [thread #10] [INF] [TeaMaker] BoilWaterAsync - Kettle responded
+[16:45:48.307] [thread #10] [INF] [TeaMaker] BoilWaterAsync END
+[16:45:48.308] [thread #10] [INF] [TeaMaker] PourWaterIntoCup  -> Pouring Boiled Water into cup
+[16:45:50.427] [thread #7 ] [INF] [TeaMaker] Task.Run -> Snacks ready!
+[16:45:50.428] [thread #7 ] [INF] [TeaMaker] ServeCup  -> Cup is ready to serve!
+[16:45:50.429] [thread #7 ] [INF] [Program] Total elapsed time: 20.10s
 ```
 
 ## Output Analysis
 
-| Timestamp     | Thread | Event           | Explanation                                    |
-| ------------- | ------ | --------------- | ---------------------------------------------- |
-| 05.947        | #1     | Boiling starts  | HTTP request initiated, returns immediately    |
-| 06.033        | #1     | Tea in cup      | Thread #1 continues while water boils          |
-| 19.138        | #9     | Kettle responds | ~13s later, HTTP response arrives on thread #9 |
-| 19.138-19.139 | #9     | Pour & serve    | Remaining steps execute on thread #9           |
+| Timestamp     | Thread | Event                 | Explanation                                                    |
+| ------------- | ------ | --------------------- | -------------------------------------------------------------- |
+| 30.347        | #1     | Boiling starts        | HTTP request initiated, returns immediately                    |
+| 30.415        | #1     | Tea in cup            | Thread #1 continues work while water boils                     |
+| 30.422        | #7     | Snack prep starts     | CPU-bound work offloaded to another thread via `Task.Run`      |
+| 48.303        | #10    | Kettle responds       | ~18s later, HTTP response arrives on thread #10                |
+| 48.308        | #10    | Pour boiling water    | Continuation runs on thread #10 after `await` completes        |
+| 50.427        | #7     | Snacks ready & serve  | Snack task finishes, final serving happens on the same thread  |
 
-**Key Observation**: Thread #1 is not blocked during the 13-second wait. The async operation releases the thread, and execution resumes on thread #9 when the I/O completes.
+**Key Observation**: Thread #1 is not blocked during the wait. It hands control back to the thread pool, allowing other work (like snack prep) to progress while the smart kettle HTTP call runs asynchronously.
 
-**Why Thread #9 instead of Thread #1?** When `await` releases Thread #1, it returns to the thread pool and becomes available for other work. When the HTTP response arrives 13 seconds later, the thread pool assigns **any available thread** to run the continuation - in this case, Thread #9. The runtime doesn't guarantee you'll get the same thread back; it uses whatever thread is available, maximizing thread pool efficiency. Thread #1 could theoretically be reused, but the thread pool scheduler decides based on availability and load balancing.
+**Why Thread #10 instead of Thread #1?** When `await` releases Thread #1, it returns to the thread pool and becomes available for other work. When the HTTP response arrives ~18 seconds later, the thread pool assigns **any available thread**—thread #10—to run the continuation. The runtime doesn't guarantee you'll get the same thread back; it picks whichever worker is free, maximizing efficiency.
 
 ## Running the Demo
 

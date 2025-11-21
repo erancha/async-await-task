@@ -28,12 +28,12 @@ namespace AsyncAwaitTask
 
          var stopwatch = Stopwatch.StartNew();
 
-         // var kettleService = new KettleService(httpClient);
-         // var teaMaker = new TeaMaker(kettleService);
+         var kettleService = new KettleService(httpClient);
+         var teaMaker = new TeaMaker(kettleService);
 
-         // Logger.Info("=== Tea Making Process ===", nameof(Program));
-         // await teaMaker.MakeTeaAsync();
-         // stopwatch.Stop();
+         Logger.Info("=== Tea Making Process ===", nameof(Program));
+         await teaMaker.MakeTeaAsync();
+         stopwatch.Stop();
          // ------------------------------------------------------------------------------------------------
 
          // Logger.Info("=== Web Scraping ===", nameof(Program));
@@ -48,11 +48,11 @@ namespace AsyncAwaitTask
          // }
          // ------------------------------------------------------------------------------------------------
 
-         Logger.Info("=== Kafka Async Pipeline ===", nameof(Program));
-         var kafkaPipeline = new KafkaPipeline();
-         await kafkaPipeline.RunAsync();
+         // Logger.Info("=== Kafka Async Pipeline ===", nameof(Program));
+         // var kafkaPipeline = new KafkaPipeline();
+         // await kafkaPipeline.RunAsync();
 
-         stopwatch.Stop();
+         // stopwatch.Stop();
 
          Logger.Info($"Total elapsed time: {stopwatch.Elapsed.TotalSeconds:F2}s", nameof(Program));
       }
