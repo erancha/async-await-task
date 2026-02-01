@@ -1,3 +1,38 @@
+# C# / .NET
 obj/
 bin/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+*.exe
+.vs/
 .vscode/
+
+# Java / Maven
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.classpath
+.project
+.settings/
+.metadata/
+
+# IDE files
+*.iml
+*.ipr
+*.iws
+.idea/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
